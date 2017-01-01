@@ -6,7 +6,7 @@ Overview
 .. code:: console
 
    $ aerozol
-   ICCID: 2456032272313811585
+   ICCID: 8948032272313811585
    User: Jakub Wilk
    Period: 30d
    Activated: 2016-12-12 20:26 (20d 1h 3m)
