@@ -105,10 +105,10 @@ def print_client_info(client_info):
     limit_daily = limit * seconds_per_day / period.total_seconds()
     remaining_limit = pkg_info['totalLimitsRemaining']
     remaining_limit = int(remaining_limit) << 20
-    remaining_limit_daily = remaining_limit * seconds_per_day / period.total_seconds()
+    remaining_limit_daily = remaining_limit * seconds_per_day / exp_delta.total_seconds()
     used_limit = pkg_info['totalLimitsUsed']
     used_limit = int(used_limit) << 20
-    used_limit_daily = used_limit * seconds_per_day / period.total_seconds()
+    used_limit_daily = used_limit * seconds_per_day / act_delta.total_seconds()
     if used_limit + remaining_limit != limit:
         raise ScrapingError('client-info/limit', (used_limit, remaining_limit, limit))
     print('Size: {0}, {1}/day'.format(format_size(limit), format_size(limit_daily)))
