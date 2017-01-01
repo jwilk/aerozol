@@ -1,0 +1,199 @@
+#!/usr/bin/env python3
+
+# Copyright © 2017 Jakub Wilk <jwilk@jwilk.net>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the “Software”), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import argparse
+import datetime
+import getpass
+import http.cookiejar
+import json
+import re
+import sys
+import urllib.parse
+import urllib.request
+
+class ScrapingError(RuntimeError):
+
+    def __str__(self):
+        return '{0}: {1!r}'.format(*self.args)
+
+seconds_per_day = 24 * 60 * 60
+
+def format_timedelta(td):
+    d = td.days
+    s = td.seconds
+    if (d < 0) or (s < 0):
+        raise NotImplementedError
+    m = s // 60
+    del s
+    (h, m) = divmod(m, 60)
+    result = []
+    if d > 0:
+        result += ['{0}d'.format(d)]
+    if h > 0:
+        result += ['{0}h'.format(h)]
+    if m > 0:
+        result += ['{0}m'.format(m)]
+    return ' '.join(result)
+
+def format_timestamp(dt):
+    s = str(dt)
+    assert s[-3] == ':'
+    return s[:-3]
+
+def format_size(n):
+    if n < 0:
+        raise NotImplementedError
+    prefixes = [
+        ('Gi', 30),
+        ('Mi', 20),
+        ('Ki', 10),
+        ('', 0),
+    ]
+    for prefix, scale in prefixes:
+        if n >= (1 << scale):
+            return '{0:.1f} {1}B'.format(n / (1 << scale), prefix)
+
+def print_client_info(client_info):
+    client_info = client_info['data']
+    login_info = client_info['loginData']
+    iccid = login_info['cardNumber']
+    user = login_info['userName']
+    print('ICCID:', iccid)
+    print('User:', user)
+    pkg_info = client_info['currentPackage']
+    now = datetime.datetime.now()
+    period = pkg_info['period']
+    period = int(period)
+    period = datetime.timedelta(days=period)
+    exp_date = pkg_info['expirationDate']
+    exp_date_match = re.match(r'\A([0-9]{2})[.]([0-9]{2})[.]([0-9]{4}) godzina ([0-9]{2}):([0-9]{2})\Z', exp_date)
+    if exp_date_match is None:
+        raise ScrapingError('client-info/exp-date', exp_date)
+    (day, month, year, hour, minute) = (int(x) for x in exp_date_match.groups())
+    exp_date = datetime.datetime(year, month, day, hour, minute)
+    if exp_date < now:
+        raise ScrapingError('client-info/exp-delta', (exp_date, now))
+    exp_delta = exp_date - now
+    act_date = exp_date - period
+    if act_date > now:
+        raise ScrapingError('client-info/act-delta', (act_date, now))
+    act_delta = now - act_date
+    print('Period:', format_timedelta(period))
+    print('Activated: {0} ({1})'.format(format_timestamp(act_date), format_timedelta(act_delta)))
+    print('Expires: {0} ({1})'.format(format_timestamp(exp_date), format_timedelta(exp_delta)))
+    limit = pkg_info['totalLimit']
+    limit = int(limit) << 20
+    limit_daily = limit * seconds_per_day / period.total_seconds()
+    remaining_limit = pkg_info['totalLimitsRemaining']
+    remaining_limit = int(remaining_limit) << 20
+    remaining_limit_daily = remaining_limit * seconds_per_day / period.total_seconds()
+    used_limit = pkg_info['totalLimitsUsed']
+    used_limit = int(used_limit) << 20
+    used_limit_daily = used_limit * seconds_per_day / period.total_seconds()
+    if used_limit + remaining_limit != limit:
+        raise ScrapingError('client-info/limit', (used_limit, remaining_limit, limit))
+    print('Size: {0}, {1}/day'.format(format_size(limit), format_size(limit_daily)))
+    print('Used: {0}, {1}/day'.format(format_size(used_limit), format_size(used_limit_daily)))
+    print('Remaining: {0}, {1}/day'.format(format_size(remaining_limit), format_size(remaining_limit_daily)))
+
+class UserAgent(object):
+
+    user_agent_string = 'Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0'
+    base_url = 'https://moje.aero2.pl/'
+
+    def __init__(self):
+        cookie_jar = http.cookiejar.CookieJar()
+        cookie_proc = urllib.request.HTTPCookieProcessor(cookie_jar)
+        self.opener = urllib.request.build_opener(cookie_proc)
+        self.default_headers = {
+            'User-Agent': self.user_agent_string,
+            'Referer': self.base_url,
+        }
+
+    def _json_request(self, url, headers=(), **kwargs):
+        url = urllib.parse.urljoin(self.base_url, url)
+        headers = dict(self.default_headers, **(headers or {}))
+        request = urllib.request.Request(
+            url,
+            headers=headers,
+            **kwargs
+        )
+        with self.opener.open(request) as response:
+            data = response.read()
+        data = data.decode('UTF-8')
+        return json.loads(data)
+
+    def json_get(self, url, **kwargs):
+        return self._json_request(url, method='GET', **kwargs)
+
+    def json_post(self, url, *, data, headers=(), **kwargs):
+        data = json.dumps(data)
+        data = data.encode('UTF-8')
+        headers = {
+            'Content-Type': 'application/json;charset=utf-8'
+        }
+        headers.update(headers)
+        return self._json_request(url, method='POST', data=data, headers=headers, **kwargs)
+
+def require_python(*version):
+    if sys.version_info < version:
+        version_str = '.'.join(str(x) for x in version)
+        message = 'Python >= {0} is required'.format(version_str)
+        raise RuntimeError(message)
+
+def main():
+    require_python(3, 4, 3)
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--debug-client-info', action='store_true', help=argparse.SUPPRESS)
+    options = ap.parse_args()
+    if options.debug_client_info:
+        client_info = json.load(sys.stdin)
+        print_client_info(client_info)
+        return
+    password = getpass.getpass('moje.aero2.pl password: ')
+    ua = UserAgent()
+    login_info = ua.json_get('/ProstyPrepaid/selfcare/isLogin')
+    if login_info != dict(error='SESSION_EXPIRED'):
+        raise ScrapingError('is-login', login_info)
+    iccid_info = ua.json_get('/ProstyPrepaid/selfcare/getICCID')
+    iccid = iccid_info['data']['cardNumber']
+    if len(iccid) == 10 and iccid.isdigit():
+        pass
+    else:
+        raise ScrapingError('get-iccid', login_info)
+    post_login_info = ua.json_post('/ProstyPrepaid/selfcare/login', data=dict(
+        login=iccid,
+        password=password,
+    ))
+    login_result = post_login_info['result']
+    if login_result != 'OK':
+        raise ScrapingError('login-result', login_result)
+    client_info = ua.json_get('/ProstyPrepaid/selfcare/getClientInfo')
+    print_client_info(client_info)
+    logout_info = ua.json_get('/ProstyPrepaid/selfcare/logout')
+    if logout_info != dict(data=True):
+        raise ScrapingError('logout', login_info)
+
+if __name__ == '__main__':
+    main()
+
+# vim:ts=4 sts=4 sw=4 et
