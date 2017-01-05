@@ -115,6 +115,10 @@ def print_client_info(client_info):
     print('Used: {0}, {1}/day'.format(format_size(used_limit), format_size(used_limit_daily)))
     print('Remaining: {0}, {1}/day'.format(format_size(remaining_limit), format_size(remaining_limit_daily)))
 
+def read_json(data):
+    data = data.decode('UTF-8')
+    return json.loads(data)
+
 class UserAgent(object):
 
     user_agent_string = 'Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0'
@@ -139,8 +143,7 @@ class UserAgent(object):
         )
         with self.opener.open(request) as response:
             data = response.read()
-        data = data.decode('UTF-8')
-        return json.loads(data)
+        return read_json(data)
 
     def json_get(self, url, **kwargs):
         return self._json_request(url, method='GET', **kwargs)
