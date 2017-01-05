@@ -163,6 +163,12 @@ def require_python(*version):
         message = 'Python >= {0} is required'.format(version_str)
         raise RuntimeError(message)
 
+def error(message):
+    ap = argparse.ArgumentParser()
+    message = '{prog}: {msg}'.format(prog=ap.prog, msg=message)
+    print(message, file=sys.stderr)
+    sys.exit(1)
+
 def main():
     require_python(3, 4, 3)
     ap = argparse.ArgumentParser()
@@ -183,10 +189,17 @@ def main():
         pass
     else:
         raise ScrapingError('get-iccid', login_info)
-    post_login_info = ua.json_post('/ProstyPrepaid/selfcare/login', data=dict(
-        login=iccid,
-        password=password,
-    ))
+    try:
+        post_login_info = ua.json_post('/ProstyPrepaid/selfcare/login', data=dict(
+            login=iccid,
+            password=password,
+        ))
+    except urllib.error.HTTPError as exc:
+        if exc.code == http.client.UNAUTHORIZED:
+            exc_info = read_json(exc.read())
+            if exc_info == {'error': 'LOGIN_ERROR'}:
+                error('login error')
+        raise
     login_result = post_login_info['result']
     if login_result != 'OK':
         raise ScrapingError('login-result', login_result)
