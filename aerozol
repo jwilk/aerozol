@@ -26,6 +26,7 @@ import getpass
 import http.cookiejar
 import json
 import re
+import subprocess
 import sys
 import urllib.parse
 import urllib.request
@@ -172,13 +173,22 @@ def error(message):
 def main():
     require_python(3, 4, 3)
     ap = argparse.ArgumentParser()
+    ap.add_argument('--password-eval', metavar='COMMAND', help='use password from the COMMAND\'s stdout')
     ap.add_argument('--debug-client-info', action='store_true', help=argparse.SUPPRESS)
     options = ap.parse_args()
     if options.debug_client_info:
         client_info = json.load(sys.stdin)
         print_client_info(client_info)
         return
-    password = getpass.getpass('moje.aero2.pl password: ')
+    if options.password_eval:
+        password = subprocess.check_output(
+            options.password_eval,
+            shell=True,
+            universal_newlines=True,
+        )
+        password = password.rstrip('\n')
+    else:
+        password = getpass.getpass('moje.aero2.pl password: ')
     ua = UserAgent()
     login_info = ua.json_get('/ProstyPrepaid/selfcare/isLogin')
     if login_info != dict(error='SESSION_EXPIRED'):
