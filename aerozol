@@ -177,7 +177,7 @@ def error(message):
     sys.exit(1)
 
 def main():
-    require_python(3, 4, 3)
+    require_python(3, 4)
     ap = argparse.ArgumentParser()
     ap.add_argument('--password-eval', metavar='COMMAND', help='use password from the COMMAND\'s stdout')
     ap.add_argument('--ca-file', metavar='FILE', help='trust these CA certificate(s)')
