@@ -26,6 +26,7 @@ import getpass
 import http.cookiejar
 import json
 import re
+import ssl
 import subprocess
 import sys
 import urllib.parse
@@ -125,10 +126,15 @@ class UserAgent(object):
     user_agent_string = 'Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0'
     base_url = 'https://moje.aero2.pl/'
 
-    def __init__(self):
+    def __init__(self, cafile=None):
+        tls_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=cafile)
+        https_handler = urllib.request.HTTPSHandler(context=tls_context)
         cookie_jar = http.cookiejar.CookieJar()
         cookie_proc = urllib.request.HTTPCookieProcessor(cookie_jar)
-        self.opener = urllib.request.build_opener(cookie_proc)
+        self.opener = urllib.request.build_opener(
+            https_handler,
+            cookie_proc,
+        )
         self.default_headers = {
             'User-Agent': self.user_agent_string,
             'Referer': self.base_url,
@@ -174,6 +180,7 @@ def main():
     require_python(3, 4, 3)
     ap = argparse.ArgumentParser()
     ap.add_argument('--password-eval', metavar='COMMAND', help='use password from the COMMAND\'s stdout')
+    ap.add_argument('--ca-file', metavar='FILE', help='trust these CA certificate(s)')
     ap.add_argument('--debug-client-info', action='store_true', help=argparse.SUPPRESS)
     options = ap.parse_args()
     if options.debug_client_info:
@@ -189,7 +196,7 @@ def main():
         password = password.rstrip('\n')
     else:
         password = getpass.getpass('moje.aero2.pl password: ')
-    ua = UserAgent()
+    ua = UserAgent(cafile=options.ca_file)
     login_info = ua.json_get('/ProstyPrepaid/selfcare/isLogin')
     if login_info != dict(error='SESSION_EXPIRED'):
         raise ScrapingError('is-login', login_info)
