@@ -182,11 +182,22 @@ def main():
     ap.add_argument('--password-eval', metavar='COMMAND', help='use password from the COMMAND\'s stdout')
     ap.add_argument('--ca-file', metavar='FILE', help='trust these CA certificate(s)')
     ap.add_argument('--debug-client-info', action='store_true', help=argparse.SUPPRESS)
+    ap.add_argument('--debug-badssl', action='store_true', help=argparse.SUPPRESS)
     options = ap.parse_args()
     if options.debug_client_info:
         client_info = json.load(sys.stdin)
         print_client_info(client_info)
         return
+    ua = UserAgent(cafile=options.ca_file)
+    if options.debug_badssl:
+        ua.base_url = 'https://self-signed.badssl.com/'
+        try:
+            ua.json_get('/')
+        except urllib.error.URLError as exc:
+            if isinstance(exc.args[0], ssl.SSLError):
+                return
+            else:
+                raise
     if options.password_eval:
         password = subprocess.check_output(
             options.password_eval,
@@ -196,7 +207,6 @@ def main():
         password = password.rstrip('\n')
     else:
         password = getpass.getpass('moje.aero2.pl password: ')
-    ua = UserAgent(cafile=options.ca_file)
     login_info = ua.json_get('/ProstyPrepaid/selfcare/isLogin')
     if login_info != dict(error='SESSION_EXPIRED'):
         raise ScrapingError('is-login', login_info)
