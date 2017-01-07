@@ -1,0 +1,12 @@
+language: python
+python:
+- "3.4"
+- "3.5"
+- "3.6"
+- "3.7-dev"
+install:
+- pip install docutils
+script:
+- ./aerozol --debug-badssl
+
+# vim:ts=2 sts=2 sw=2 et
