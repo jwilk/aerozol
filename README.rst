@@ -18,6 +18,6 @@ Overview
 Prerequisites
 =============
 
-* Python ≥ 3.4.3
+* Python ≥ 3.4
 
 .. vim:ft=rst ts=3 sts=3 sw=3 et
