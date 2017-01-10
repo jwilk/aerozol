@@ -32,6 +32,8 @@ import sys
 import urllib.parse
 import urllib.request
 
+import pytz
+
 class ScrapingError(RuntimeError):
 
     def __str__(self):
@@ -57,6 +59,9 @@ def format_timedelta(td):
     return ' '.join(result)
 
 def format_timestamp(dt):
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(None)
+        dt = dt.replace(tzinfo=None)
     s = str(dt)
     assert s[-3] == ':'
     return s[:-3]
@@ -75,6 +80,7 @@ def format_size(n):
             return '{0:.1f} {1}B'.format(n / (1 << scale), prefix)
 
 def print_client_info(client_info):
+    tz_poland = pytz.timezone('Europe/Warsaw')
     client_info = client_info['data']
     login_info = client_info['loginData']
     iccid = login_info['cardNumber']
@@ -82,7 +88,8 @@ def print_client_info(client_info):
     print('ICCID:', iccid)
     print('User:', user)
     pkg_info = client_info['currentPackage']
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
+    now = pytz.utc.localize(now)
     period = pkg_info['period']
     period = int(period)
     period = datetime.timedelta(days=period)
@@ -92,6 +99,7 @@ def print_client_info(client_info):
         raise ScrapingError('client-info/exp-date', exp_date)
     (day, month, year, hour, minute) = (int(x) for x in exp_date_match.groups())
     exp_date = datetime.datetime(year, month, day, hour, minute)
+    exp_date = tz_poland.localize(exp_date)
     if exp_date < now:
         raise ScrapingError('client-info/exp-delta', (exp_date, now))
     exp_delta = exp_date - now

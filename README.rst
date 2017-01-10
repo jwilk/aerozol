@@ -20,4 +20,9 @@ Prerequisites
 
 * Python ≥ 3.4
 
+* pytz_
+
+.. _pytz:
+   https://pypi.python.org/pypi/pytz/
+
 .. vim:ft=rst ts=3 sts=3 sw=3 et
