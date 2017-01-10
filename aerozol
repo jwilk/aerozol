@@ -88,8 +88,7 @@ def print_client_info(client_info):
     pkg_info = client_info['currentPackage']
     now = client_info.get(datetime)
     if now is None:
-        now = datetime.datetime.utcnow()
-        now = pytz.utc.localize(now)
+        now = datetime.datetime.now(pytz.utc)
     period = pkg_info['period']
     period = int(period)
     period = datetime.timedelta(days=period)
