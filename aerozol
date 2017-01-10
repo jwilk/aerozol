@@ -69,15 +69,12 @@ def format_timestamp(dt):
 def format_size(n):
     if n < 0:
         raise NotImplementedError
-    prefixes = [
-        ('Gi', 30),
-        ('Mi', 20),
-        ('Ki', 10),
-        ('', 0),
-    ]
-    for prefix, scale in prefixes:
-        if n >= (1 << scale):
-            return '{0:.1f} {1}B'.format(n / (1 << scale), prefix)
+    for prefix in ['', 'Ki', 'Mi', 'Gi']:
+        if n < 1024:
+            return '{0:.1f} {1}B'.format(n, prefix)
+        n /= 1024
+    else:
+        raise NotImplementedError
 
 def print_client_info(client_info):
     tz_poland = pytz.timezone('Europe/Warsaw')
