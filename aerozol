@@ -77,7 +77,14 @@ def format_size(n):
     else:
         raise NotImplementedError
 
-def print_client_info(client_info):
+def print_client_info(client_info, *, options):
+    server_now = client_info.get(datetime)
+    client_now = datetime.datetime.now(pytz.utc)
+    if options.debug_time:
+        print('Server time:', server_now or '?')
+        print('Client time:', client_now)
+        if server_now is not None:
+            print('Time delta:', client_now - server_now)
     tz_poland = pytz.timezone('Europe/Warsaw')
     client_info = client_info['data']
     login_info = client_info['loginData']
@@ -86,9 +93,7 @@ def print_client_info(client_info):
     print('ICCID:', iccid)
     print('User:', user)
     pkg_info = client_info['currentPackage']
-    now = client_info.get(datetime)
-    if now is None:
-        now = datetime.datetime.now(pytz.utc)
+    now = server_now or client_now
     period = pkg_info['period']
     period = int(period)
     period = datetime.timedelta(days=period)
@@ -196,10 +201,11 @@ def main():
     ap.add_argument('--ca-file', metavar='FILE', help='trust these CA certificate(s)')
     ap.add_argument('--debug-client-info', action='store_true', help=argparse.SUPPRESS)
     ap.add_argument('--debug-badssl', action='store_true', help=argparse.SUPPRESS)
+    ap.add_argument('--debug-time', action='store_true', help=argparse.SUPPRESS)
     options = ap.parse_args()
     if options.debug_client_info:
         client_info = json.load(sys.stdin)
-        print_client_info(client_info)
+        print_client_info(client_info, options=options)
         return
     ua = UserAgent(cafile=options.ca_file)
     if options.debug_badssl:
@@ -244,7 +250,7 @@ def main():
     if login_result != 'OK':
         raise ScrapingError('login-result', login_result)
     client_info = ua.json_get('/ProstyPrepaid/selfcare/getClientInfo', with_datetime=True)
-    print_client_info(client_info)
+    print_client_info(client_info, options=options)
     logout_info = ua.json_get('/ProstyPrepaid/selfcare/logout')
     if logout_info != dict(data=True):
         raise ScrapingError('logout', login_info)
