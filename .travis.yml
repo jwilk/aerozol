@@ -5,6 +5,7 @@ python:
 - "3.6"
 - "3.7-dev"
 install:
+- pip install pytz
 - pip install docutils
 script:
 - ./aerozol --debug-badssl
