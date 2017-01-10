@@ -22,6 +22,7 @@
 
 import argparse
 import datetime
+import email.utils
 import getpass
 import http.cookiejar
 import json
@@ -85,8 +86,10 @@ def print_client_info(client_info):
     print('ICCID:', iccid)
     print('User:', user)
     pkg_info = client_info['currentPackage']
-    now = datetime.datetime.utcnow()
-    now = pytz.utc.localize(now)
+    now = client_info.get(datetime)
+    if now is None:
+        now = datetime.datetime.utcnow()
+        now = pytz.utc.localize(now)
     period = pkg_info['period']
     period = int(period)
     period = datetime.timedelta(days=period)
@@ -146,6 +149,7 @@ class UserAgent(object):
         }
 
     def _json_request(self, url, headers=(), **kwargs):
+        with_datetime = kwargs.pop('with_datetime', False)
         url = urllib.parse.urljoin(self.base_url, url)
         headers = dict(self.default_headers, **(headers or {}))
         request = urllib.request.Request(
@@ -155,7 +159,12 @@ class UserAgent(object):
         )
         with self.opener.open(request) as response:
             data = response.read()
-        return read_json(data)
+            dt = response.getheader('Date')
+        data = read_json(data)
+        if with_datetime:
+            dt = email.utils.parsedate_to_datetime(dt)
+            data[datetime] = dt
+        return data
 
     def json_get(self, url, **kwargs):
         return self._json_request(url, method='GET', **kwargs)
@@ -235,7 +244,7 @@ def main():
     login_result = post_login_info['result']
     if login_result != 'OK':
         raise ScrapingError('login-result', login_result)
-    client_info = ua.json_get('/ProstyPrepaid/selfcare/getClientInfo')
+    client_info = ua.json_get('/ProstyPrepaid/selfcare/getClientInfo', with_datetime=True)
     print_client_info(client_info)
     logout_info = ua.json_get('/ProstyPrepaid/selfcare/logout')
     if logout_info != dict(data=True):
