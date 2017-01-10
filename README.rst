@@ -23,6 +23,6 @@ Prerequisites
 * pytz_
 
 .. _pytz:
-   https://pypi.python.org/pypi/pytz/
+   https://pypi.python.org/pypi/pytz
 
 .. vim:ft=rst ts=3 sts=3 sw=3 et
