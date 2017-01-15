@@ -110,12 +110,8 @@ def print_client_info(client_info, *, options):
     (day, month, year, hour, minute) = (int(x) for x in exp_date_match.groups())
     exp_date = datetime.datetime(year, month, day, hour, minute)
     exp_date = tz_poland.localize(exp_date)
-    if exp_date < now:
-        raise ScrapingError('client-info/exp-delta', (exp_date, now))
     exp_delta = exp_date - now
     act_date = exp_date - period
-    if act_date > now:
-        raise ScrapingError('client-info/act-delta', (act_date, now))
     act_delta = now - act_date
     print('Period:', format_timedelta(period))
     print('Activated: {0} ({1})'.format(format_timestamp(act_date), format_timedelta(act_delta)))
