@@ -43,14 +43,17 @@ class ScrapingError(RuntimeError):
 seconds_per_day = 24 * 60 * 60
 
 def format_timedelta(td):
+    result = []
+    if td < datetime.timedelta(0):
+        td = -td
+        result += ['-']
     d = td.days
     s = td.seconds
     if (d < 0) or (s < 0):
-        raise NotImplementedError
+        raise ValueError
     m = s // 60
     del s
     (h, m) = divmod(m, 60)
-    result = []
     if d > 0:
         result += ['{0}d'.format(d)]
     if h > 0:
