@@ -72,10 +72,13 @@ def format_timestamp(dt):
 
 def format_size(n):
     if n < 0:
-        raise NotImplementedError
+        sign = '-'
+        n = - n
+    else:
+        sign = ''
     for prefix in ['', 'Ki', 'Mi', 'Gi']:
         if n < 1024:
-            return '{0:.1f} {1}B'.format(n, prefix)
+            return '{s}{0:.1f} {p}B'.format(n, s=sign, p=prefix)
         n /= 1024
     else:
         raise NotImplementedError
