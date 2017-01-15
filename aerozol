@@ -99,6 +99,9 @@ def print_client_info(client_info, *, options):
     print('ICCID:', iccid)
     print('User:', user)
     pkg_info = client_info['currentPackage']
+    if pkg_info is None:
+        print('Period: none')
+        return
     now = server_now or client_now
     period = pkg_info['period']
     period = int(period)
