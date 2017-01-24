@@ -6,8 +6,9 @@ python:
 - "3.7-dev"
 install:
 - pip install pytz
-- pip install docutils
+- pip install docutils pygments
 script:
 - ./aerozol --debug-badssl
+- private/check-rst
 
 # vim:ts=2 sts=2 sw=2 et
