@@ -1,7 +1,8 @@
 Overview
 ========
 
-**aerozol** prints your Aero2 paid plan status:
+**aerozol** scrapes Aero2 customer service website
+to print paid plan status:
 
 .. code:: console
 
