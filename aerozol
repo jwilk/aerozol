@@ -140,7 +140,7 @@ def read_json(data):
 
 class UserAgent(object):
 
-    user_agent_string = 'Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0'
+    user_agent_string = 'Mozilla/5.0 (Windows NT 6.1; rv:52.0) Gecko/20100101 Firefox/52.0'
     base_url = 'https://moje.aero2.pl/'
 
     def __init__(self, cafile=None):
