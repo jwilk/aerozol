@@ -9,8 +9,11 @@ python:
 install:
 - pip install pytz
 - pip install docutils pygments
+- pip install pydiatra pyflakes
 script:
 - ./aerozol --debug-badssl
+- python3 -m pydiatra aerozol
+- python3 -m pyflakes aerozol
 - private/check-rst
 
 # vim:ts=2 sts=2 sw=2 et
