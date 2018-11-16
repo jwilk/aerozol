@@ -7,9 +7,9 @@ python:
 - "3.6"
 - "3.7-dev"
 install:
-- pip install pytz
-- pip install restructuredtext-lint pygments
-- pip install pydiatra pyflakes
+- python3 -m pip install pytz
+- python3 -m pip install restructuredtext-lint pygments
+- python3 -m pip install pydiatra pyflakes
 script:
 - ./aerozol --debug-badssl
 - python3 -m pydiatra aerozol
