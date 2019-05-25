@@ -5,6 +5,7 @@ python:
 - "3.5"
 - "3.6"
 - "3.7"
+- "3.8-dev"
 install:
 - python3 -m pip install pytz
 - python3 -m pip install restructuredtext-lint pygments
