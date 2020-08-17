@@ -96,7 +96,7 @@ def print_client_info(client_info, *, options):
     login_info = client_info['loginData']
     iccid = login_info['cardNumber']
     bdi_info = client_info['bdiData']
-    user = '{name} {surname}'.format(**bdi_info)
+    user = '{name} {surname}'.format_map(bdi_info)
     print('ICCID:', iccid)
     print('User:', user)
     pkg_info = client_info['currentPackage']
