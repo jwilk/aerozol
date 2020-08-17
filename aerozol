@@ -237,10 +237,10 @@ def main():
         raise ScrapingError('is-login', login_info)
     iccid_info = ua.json_get('/ProstyPrepaid/selfcare/getICCID')
     iccid = iccid_info['data']['cardNumber']
-    if len(iccid) == 10 and iccid.isdigit():
+    if isinstance(iccid, str) and len(iccid) == 10 and iccid.isdigit():
         pass
     else:
-        raise ScrapingError('get-iccid', login_info)
+        raise ScrapingError('get-iccid', iccid_info)
     try:
         post_login_info = ua.json_post('/ProstyPrepaid/selfcare/login', data=dict(
             login=iccid,
