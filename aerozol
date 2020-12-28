@@ -203,7 +203,7 @@ def error(message):
 def main():
     require_python(3, 4)
     ap = argparse.ArgumentParser()
-    ap.add_argument('--password-eval', metavar='COMMAND', help='use password from the COMMAND\'s stdout')
+    ap.add_argument('--password-file', metavar='FILE', help='read password from FILE')
     ap.add_argument('--ca-file', metavar='FILE', help='trust these CA certificate(s)')
     ap.add_argument('--debug-client-info', action='store_true', help=argparse.SUPPRESS)
     ap.add_argument('--debug-badssl', action='store_true', help=argparse.SUPPRESS)
@@ -223,12 +223,9 @@ def main():
                 return
             else:
                 raise
-    if options.password_eval:
-        password = subprocess.check_output(
-            options.password_eval,
-            shell=True,
-            universal_newlines=True,
-        )
+    if options.password_file is not None:
+        with open(options.password_file, 'rt') as file:
+            password = file.readline()
         password = password.rstrip('\n')
     else:
         password = getpass.getpass('moje.aero2.pl password: ')
