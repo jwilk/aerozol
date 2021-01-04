@@ -28,7 +28,6 @@ import http.cookiejar
 import json
 import re
 import ssl
-import subprocess
 import sys
 import urllib.parse
 import urllib.request
