@@ -228,6 +228,8 @@ def main():
         password = password.rstrip('\n')
     else:
         password = getpass.getpass('moje.aero2.pl password: ')
+    if not password:
+        error('error: empty password')
     login_info = ua.json_get('/ProstyPrepaid/selfcare/isLogin')
     if login_info != dict(error='SESSION_EXPIRED'):
         raise ScrapingError('is-login', login_info)
