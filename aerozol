@@ -137,7 +137,7 @@ def read_json(data):
     data = data.decode('UTF-8')
     return json.loads(data)
 
-class UserAgent(object):
+class UserAgent():
 
     user_agent_string = 'Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0'
     base_url = 'https://moje.aero2.pl/'
