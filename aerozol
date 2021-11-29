@@ -79,8 +79,7 @@ def format_size(n):
         if n < 1024:
             return '{s}{0:.1f} {p}B'.format(n, s=sign, p=prefix)
         n /= 1024
-    else:
-        raise NotImplementedError
+    raise NotImplementedError
 
 def print_client_info(client_info, *, options):
     server_now = client_info.get(datetime)
@@ -220,8 +219,7 @@ def main():
         except urllib.error.URLError as exc:
             if isinstance(exc.args[0], ssl.SSLError):
                 return
-            else:
-                raise
+            raise
     if options.password_file is not None:
         with open(options.password_file, 'rt') as file:
             password = file.readline()
