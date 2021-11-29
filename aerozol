@@ -216,6 +216,7 @@ def main():
             if isinstance(exc.args[0], ssl.SSLError):
                 return
             raise
+        raise ssl.SSLError
     if options.password_file is not None:
         with open(options.password_file, 'rt') as file:  # pylint:disable=unspecified-encoding
             password = file.readline()
