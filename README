@@ -19,7 +19,7 @@ to print paid plan status:
 Prerequisites
 =============
 
-* Python ≥ 3.4
+* Python ≥ 3.6
 
 * pytz_
 
