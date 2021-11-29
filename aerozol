@@ -39,7 +39,8 @@ type(0_0)  # Python >= 3.6 is required
 class ScrapingError(RuntimeError):
 
     def __str__(self):
-        return '{0}: {1!r}'.format(*self.args)
+        args = self.args
+        return f'{args[0]}: {args[1]!r}'
 
 seconds_per_day = 24 * 60 * 60
 
@@ -56,11 +57,11 @@ def format_timedelta(td):
     del s
     (h, m) = divmod(m, 60)
     if d > 0:
-        result += ['{0}d'.format(d)]
+        result += [f'{d}d']
     if h > 0:
-        result += ['{0}h'.format(h)]
+        result += [f'{h}h']
     if m > 0:
-        result += ['{0}m'.format(m)]
+        result += [f'{m}m']
     return ' '.join(result)
 
 def format_timestamp(dt):
@@ -79,7 +80,7 @@ def format_size(n):
         sign = ''
     for prefix in ['', 'Ki', 'Mi', 'Gi']:
         if n < 1024:
-            return '{s}{0:.1f} {p}B'.format(n, s=sign, p=prefix)
+            return f'{sign}{n:.1f} {prefix}B'
         n /= 1024
     raise NotImplementedError
 
@@ -118,8 +119,8 @@ def print_client_info(client_info, *, options):
     act_date = exp_date - period
     act_delta = now - act_date
     print('Period:', format_timedelta(period))
-    print('Activated: {0} ({1})'.format(format_timestamp(act_date), format_timedelta(act_delta)))
-    print('Expires: {0} ({1})'.format(format_timestamp(exp_date), format_timedelta(exp_delta)))
+    print(f'Activated: {format_timestamp(act_date)} ({format_timedelta(act_delta)})')
+    print(f'Expires: {format_timestamp(exp_date)} ({format_timedelta(exp_delta)})')
     limit = pkg_info['totalLimit']
     limit = int(limit) << 20
     limit_daily = limit * seconds_per_day / period.total_seconds()
@@ -131,9 +132,9 @@ def print_client_info(client_info, *, options):
     used_limit_daily = used_limit * seconds_per_day / act_delta.total_seconds()
     if used_limit + remaining_limit != limit:
         raise ScrapingError('client-info/limit', (used_limit, remaining_limit, limit))
-    print('Size: {0}, {1}/day'.format(format_size(limit), format_size(limit_daily)))
-    print('Used: {0}, {1}/day'.format(format_size(used_limit), format_size(used_limit_daily)))
-    print('Remaining: {0}, {1}/day'.format(format_size(remaining_limit), format_size(remaining_limit_daily)))
+    print(f'Size: {format_size(limit)}, {format_size(limit_daily)}/day')
+    print(f'Used: {format_size(used_limit)}, {format_size(used_limit_daily)}/day')
+    print(f'Remaining: {format_size(remaining_limit)}, {format_size(remaining_limit_daily)}/day')
 
 def read_json(data):
     data = data.decode('UTF-8')
@@ -190,7 +191,7 @@ class UserAgent():
 
 def error(message):
     ap = argparse.ArgumentParser()
-    message = '{prog}: {msg}'.format(prog=ap.prog, msg=message)
+    message = f'{ap.prog}: {message}'
     print(message, file=sys.stderr)
     sys.exit(1)
 
