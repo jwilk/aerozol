@@ -217,7 +217,7 @@ def main():
                 return
             raise
     if options.password_file is not None:
-        with open(options.password_file, 'rt') as file:
+        with open(options.password_file, 'rt') as file:  # pylint:disable=unspecified-encoding
             password = file.readline()
         password = password.rstrip('\n')
     else:
