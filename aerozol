@@ -21,8 +21,10 @@
 # SOFTWARE.
 
 import argparse
+import base64
 import datetime
 import email.utils
+import functools
 import getpass
 import http.cookiejar
 import json
@@ -195,6 +197,31 @@ def error(message):
     print(message, file=sys.stderr)
     sys.exit(1)
 
+class Crypto:
+
+    # pylint:disable=import-outside-toplevel
+
+    from cryptography.hazmat.primitives.ciphers import Cipher
+    from cryptography.hazmat.primitives.ciphers.algorithms import AES
+    from cryptography.hazmat.primitives.ciphers.modes import ECB
+    from cryptography.hazmat.primitives.hashes import SHA1
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    from cryptography.hazmat.primitives.padding import PKCS7
+
+    @classmethod
+    def encrypt(cls, text, key, salt):
+        pdkey = cls.PBKDF2HMAC(cls.SHA1, 16, salt, 1).derive(key)
+        padder = cls.PKCS7(cls.AES.block_size).padder()
+        padded_text = padder.update(text.encode()) + padder.finalize()
+        encryptor = cls.Cipher(cls.AES(pdkey), cls.ECB()).encryptor()
+        ciphertext = encryptor.update(padded_text) + encryptor.finalize()
+        return ciphertext
+
+base64_decode = base64.b64decode
+
+def base64_encode(s):
+    return base64.b64encode(s).decode()
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--password-file', metavar='FILE', help='read password from FILE')
@@ -225,6 +252,11 @@ def main():
         password = getpass.getpass('moje.aero2.pl password: ')
     if not password:
         error('error: empty password')
+    config = ua.json_get('/configuration.json')
+    conf_encrypt = functools.partial(Crypto.encrypt,
+        key=base64_decode(config['key']),
+        salt=base64_decode(config['salt']),
+    )
     login_info = ua.json_get('/ProstyPrepaid/selfcare/isLogin')
     if login_info != dict(error='SESSION_EXPIRED'):
         raise ScrapingError('is-login', login_info)
@@ -234,10 +266,12 @@ def main():
         pass
     else:
         raise ScrapingError('get-iccid', iccid_info)
+    form_login = base64_encode(conf_encrypt(iccid))
+    form_password = base64_encode(conf_encrypt(password))
     try:
         post_login_info = ua.json_post('/ProstyPrepaid/selfcare/login', data=dict(
-            login=iccid,
-            password=password,
+            login=form_login,
+            password=form_password,
         ))
     except urllib.error.HTTPError as exc:
         if exc.code == http.client.UNAUTHORIZED:

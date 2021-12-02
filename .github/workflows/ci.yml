@@ -22,7 +22,7 @@ jobs:
         python-version: ${{matrix.python}}
     - name: install deps
       run:
-        python3 -m pip install pytz
+        python3 -m pip install pytz cryptography
     - name: run TLS test
       run:
         ./aerozol --debug-badssl
