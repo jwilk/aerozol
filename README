@@ -23,7 +23,12 @@ Prerequisites
 
 * pytz_
 
+* cryptography_
+
 .. _pytz:
    https://pypi.org/project/pytz/
+
+.. _cryptography:
+   https://pypi.org/project/cryptography/
 
 .. vim:ft=rst ts=3 sts=3 sw=3 et
