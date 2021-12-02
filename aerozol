@@ -199,7 +199,7 @@ def error(message):
 
 class Crypto:
 
-    # pylint:disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel
 
     from cryptography.hazmat.primitives.ciphers import Cipher
     from cryptography.hazmat.primitives.ciphers.algorithms import AES
@@ -245,7 +245,7 @@ def main():
             raise
         raise ssl.SSLError
     if options.password_file is not None:
-        with open(options.password_file, 'rt') as file:  # pylint:disable=unspecified-encoding
+        with open(options.password_file, 'rt') as file:  # pylint: disable=unspecified-encoding
             password = file.readline()
         password = password.rstrip('\n')
     else:
