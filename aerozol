@@ -245,6 +245,9 @@ def main():
             if exc_info == {'error': 'LOGIN_ERROR'}:
                 error('login error')
         raise
+    login_error = post_login_info.get('error')
+    if login_error:
+        error(f"login error: {login_error!r}")
     login_result = post_login_info['result']
     if login_result != 'OK':
         raise ScrapingError('login-result', login_result)
