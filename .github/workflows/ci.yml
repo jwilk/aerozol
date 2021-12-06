@@ -38,7 +38,7 @@ jobs:
       run: |
         python3 -m pip install pylint
         # work-around for <https://github.com/GrahamDumpleton/wrapt/issues/196>:
-        sed -i -e 's/, formatargspec$//' /opt/hostedtoolcache/Python/*/*/lib/python*/site-packages/wrapt/decorators.py
+        sed -i -e 's/, formatargspec$//' ${{env.pythonLocation}}/lib/python*/site-packages/wrapt/decorators.py
         python3 -m pylint --verbose aerozol
     - name: check README syntax
       run: |
