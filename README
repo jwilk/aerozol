@@ -1,7 +1,7 @@
 Overview
 ========
 
-**aerozol** scrapes Aero2 customer service website
+**aerozol** scrapes `Aero2 <https://aero2.pl/>`_ customer service website
 to print paid plan status:
 
 .. code:: console
