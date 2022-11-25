@@ -64,7 +64,7 @@ def format_timedelta(td):
         result += [f'{h}h']
     if m > 0:
         result += [f'{m}m']
-    return ' '.join(result)
+    return str.join(' ', result)
 
 def format_timestamp(dt):
     if dt.tzinfo is not None:
