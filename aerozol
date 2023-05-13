@@ -86,6 +86,11 @@ def format_size(n):
         n /= 1024
     raise NotImplementedError
 
+tz_poland = pytz.timezone('Europe/Warsaw')
+def datetime_poland(year, month, day, hour, minute):
+    dt = datetime.datetime(year, month, day, hour, minute)
+    return tz_poland.localize(dt)
+
 def print_client_info(client_info, *, options):
     server_now = client_info.get(datetime)
     client_now = datetime.datetime.now(datetime.timezone.utc)
@@ -94,7 +99,6 @@ def print_client_info(client_info, *, options):
         print('Client time:', client_now)
         if server_now is not None:
             print('Time delta:', client_now - server_now)
-    tz_poland = pytz.timezone('Europe/Warsaw')
     client_info = client_info['data']
     login_info = client_info['loginData']
     iccid = login_info['cardNumber']
@@ -115,8 +119,7 @@ def print_client_info(client_info, *, options):
     if exp_date_match is None:
         raise ScrapingError('client-info/exp-date', exp_date)
     (day, month, year, hour, minute) = (int(x) for x in exp_date_match.groups())
-    exp_date = datetime.datetime(year, month, day, hour, minute)
-    exp_date = tz_poland.localize(exp_date)
+    exp_date = datetime_poland(year, month, day, hour, minute)
     exp_delta = exp_date - now
     act_date = exp_date - period
     act_delta = now - act_date
