@@ -34,7 +34,11 @@ import sys
 import urllib.parse
 import urllib.request
 
-import pytz
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    import pytz
+    zoneinfo = None
 
 type(0_0)  # Python >= 3.6 is required
 
@@ -86,10 +90,14 @@ def format_size(n):
         n /= 1024
     raise NotImplementedError
 
-tz_poland = pytz.timezone('Europe/Warsaw')
-def datetime_poland(year, month, day, hour, minute):
-    dt = datetime.datetime(year, month, day, hour, minute)
-    return tz_poland.localize(dt)
+if zoneinfo:
+    tz_poland = zoneinfo.ZoneInfo('Europe/Warsaw')
+    datetime_poland = functools.partial(datetime.datetime, tzinfo=tz_poland)
+else:
+    tz_poland = pytz.timezone('Europe/Warsaw')
+    def datetime_poland(year, month, day, hour, minute):
+        dt = datetime.datetime(year, month, day, hour, minute)
+        return tz_poland.localize(dt)
 
 def print_client_info(client_info, *, options):
     server_now = client_info.get(datetime)

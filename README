@@ -21,7 +21,7 @@ Prerequisites
 
 * Python ≥ 3.6
 
-* pytz_
+* pytz_ (for Python < 3.9)
 
 * cryptography_
 
