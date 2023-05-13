@@ -46,6 +46,9 @@ jobs:
       run: |
         python3 -m pip install pylint
         python3 -m pylint --verbose aerozol
+      continue-on-error:
+        ${{ endsWith(matrix.python, '-dev') }}
+        # FIXME: astroid.exceptions.InferenceError: StopIteration raised without any error information.
     - name: check README syntax
       run: |
         python3 -m pip install restructuredtext-lint pygments
