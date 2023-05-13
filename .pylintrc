@@ -11,6 +11,7 @@ disable =
     too-many-branches,
     too-many-locals,
     too-many-statements,
+    use-dict-literal,
 
 [REPORTS]
 reports = no
