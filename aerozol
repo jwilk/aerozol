@@ -88,7 +88,7 @@ def format_size(n):
 
 def print_client_info(client_info, *, options):
     server_now = client_info.get(datetime)
-    client_now = datetime.datetime.now(pytz.utc)
+    client_now = datetime.datetime.now(datetime.timezone.utc)
     if options.debug_time:
         print('Server time:', server_now or '?')
         print('Client time:', client_now)
