@@ -139,7 +139,10 @@ def print_client_info(client_info, *, options):
     limit_daily = limit * seconds_per_day / period.total_seconds()
     remaining_limit = pkg_info['totalLimitsRemaining']
     remaining_limit = int(remaining_limit) << 20
-    remaining_limit_daily = remaining_limit * seconds_per_day / exp_delta.total_seconds()
+    until_delta = exp_delta
+    if options.until:
+        until_delta = options.until - now
+    remaining_limit_daily = remaining_limit * seconds_per_day / until_delta.total_seconds()
     used_limit = pkg_info['totalLimitsUsed']
     used_limit = int(used_limit) << 20
     used_limit_daily = used_limit * seconds_per_day / act_delta.total_seconds()
@@ -233,8 +236,14 @@ base64_decode = base64.b64decode
 def base64_encode(s):
     return base64.b64encode(s).decode()
 
+def ap_type_date(s):
+    d = datetime.datetime.fromisoformat(s)
+    return d.astimezone()
+ap_type_date.__name__ = 'date'
+
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument('--until', metavar='YYYY-MM-DD', help='exhaustion target', type=ap_type_date)
     ap.add_argument('--password-file', metavar='FILE', help='read password from FILE')
     ap.add_argument('--ca-file', metavar='FILE', help='trust these CA certificate(s)')
     ap.add_argument('--debug-client-info', action='store_true', help=argparse.SUPPRESS)
