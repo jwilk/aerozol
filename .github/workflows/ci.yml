@@ -20,7 +20,7 @@ jobs:
           os: ubuntu-22.04
         - python: '3.11'
           os: ubuntu-22.04
-        - python: '3.12-dev'
+        - python: '3.12'
           os: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -46,9 +46,6 @@ jobs:
       run: |
         python3 -m pip install pylint
         python3 -m pylint --verbose aerozol
-      continue-on-error:
-        ${{ endsWith(matrix.python, '-dev') }}
-        # FIXME: AttributeError: 'TreeRebuilder' object has no attribute 'visit_typealias'
     - name: check README syntax
       run: |
         python3 -m pip install restructuredtext-lint pygments
