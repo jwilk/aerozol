@@ -94,7 +94,7 @@ if zoneinfo:
     tz_poland = zoneinfo.ZoneInfo('Europe/Warsaw')
     datetime_poland = functools.partial(datetime.datetime, tzinfo=tz_poland)
 else:
-    tz_poland = pytz.timezone('Europe/Warsaw')
+    tz_poland = pytz.timezone('Europe/Warsaw')  # pylint: disable=bad-option-value,possibly-used-before-assignment
     def datetime_poland(year, month, day, hour, minute):
         dt = datetime.datetime(year, month, day, hour, minute)
         return tz_poland.localize(dt)
