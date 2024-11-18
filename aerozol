@@ -161,6 +161,11 @@ class UserAgent:
     user_agent_string = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0'
     base_url = 'https://moje.aero2.pl/'
 
+    default_headers = {
+        'User-Agent': user_agent_string,
+        'Referer': base_url,
+    }
+
     def __init__(self, cafile=None):
         tls_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=cafile)
         https_handler = urllib.request.HTTPSHandler(context=tls_context)
@@ -170,13 +175,8 @@ class UserAgent:
             https_handler,
             cookie_proc,
         )
-        self.default_headers = {
-            'User-Agent': self.user_agent_string,
-            'Referer': self.base_url,
-        }
 
-    def _json_request(self, url, headers=(), **kwargs):
-        with_datetime = kwargs.pop('with_datetime', False)
+    def _request(self, url, headers=(), **kwargs):
         url = urllib.parse.urljoin(self.base_url, url)
         headers = dict(self.default_headers, **(headers or {}))
         request = urllib.request.Request(
@@ -184,7 +184,14 @@ class UserAgent:
             headers=headers,
             **kwargs
         )
-        with self.opener.open(request) as response:
+        return self.opener.open(request)
+
+    def get(self, url, headers=(), **kwargs):
+        return self._request(url, headers=headers, method='GET', **kwargs)
+
+    def _json_request(self, url, headers=(), **kwargs):
+        with_datetime = kwargs.pop('with_datetime', False)
+        with self._request(url, headers=headers, **kwargs) as response:
             data = response.read()
             dt = response.getheader('Date')
         data = read_json(data)
@@ -273,11 +280,19 @@ def main():
         password = getpass.getpass('moje.aero2.pl password: ')
     if not password:
         error('error: empty password')
-    config = ua.json_get('/configuration.json')
+    with ua.get('/assets/environment.js') as fp:
+        env_text = fp.read()
+    env_text = env_text.decode('UTF-8')
+    env = {}
+    for match in re.finditer(r"\blogin(\w+):\s*'([\w/+]+=*)'", env_text):
+        key, value = match.groups()
+        value = base64_decode(value)
+        env[key] = value
     conf_encrypt = functools.partial(Crypto.encrypt,
-        key=base64_decode(config['key']),
-        salt=base64_decode(config['salt']),
+        key=env['Key'],
+        salt=env['Salt'],
     )
+    ua.default_headers['Authorization'] = 'Basic YWVybzpBQHIwMTI='
     login_info = ua.json_get('/ProstyPrepaid/selfcare/isLogin')
     if login_info != dict(error='SESSION_EXPIRED'):
         raise ScrapingError('is-login', login_info)
@@ -306,6 +321,12 @@ def main():
     login_result = post_login_info['result']
     if login_result != 'OK':
         raise ScrapingError('login-result', login_result)
+    token = post_login_info.get('data')
+    try:
+        base64_decode(token)
+    except ValueError:
+        raise ScrapingError('token', token) from None
+    ua.default_headers['X-CustomToken'] = token
     client_info = ua.json_get('/ProstyPrepaid/selfcare/getClientInfo', with_datetime=True)
     print_client_info(client_info, options=options)
     logout_info = ua.json_get('/ProstyPrepaid/selfcare/logout')
