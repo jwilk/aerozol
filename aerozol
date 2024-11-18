@@ -231,7 +231,8 @@ class Crypto:
         ciphertext = encryptor.update(padded_text) + encryptor.finalize()
         return ciphertext
 
-base64_decode = base64.b64decode
+def base64_decode(s):
+    return base64.b64decode(s, validate=True)
 
 def base64_encode(s):
     return base64.b64encode(s).decode()
