@@ -124,7 +124,7 @@ def print_client_info(client_info, *, options):
     print('Expires:', exp_date)
     pkg_info = client_info['currentPackage']
     if pkg_info is None:
-        print('Period: none')
+        print('Plan: none')
         return
     now = server_now or client_now
     period = pkg_info['period']
@@ -139,9 +139,10 @@ def print_client_info(client_info, *, options):
     exp_delta = exp_date - now
     act_date = exp_date - period
     act_delta = now - act_date
-    print('Period:', format_timedelta(period))
-    print(f'Activated: {format_timestamp(act_date)} ({format_timedelta(act_delta)})')
-    print(f'Expires: {format_timestamp(exp_date)} ({format_timedelta(exp_delta)})')
+    print('Plan:')
+    print('  Period:', format_timedelta(period))
+    print(f'  Activated: {format_timestamp(act_date)} ({format_timedelta(act_delta)})')
+    print(f'  Expires: {format_timestamp(exp_date)} ({format_timedelta(exp_delta)})')
     limit = pkg_info['totalLimit']
     limit = int(limit) << 20
     limit_daily = limit * seconds_per_day / period.total_seconds()
@@ -156,9 +157,9 @@ def print_client_info(client_info, *, options):
     used_limit_daily = used_limit * seconds_per_day / act_delta.total_seconds()
     if used_limit + remaining_limit != limit:
         raise ScrapingError('client-info/limit', (used_limit, remaining_limit, limit))
-    print(f'Size: {format_size(limit)}, {format_size(limit_daily)}/day')
-    print(f'Used: {format_size(used_limit)}, {format_size(used_limit_daily)}/day')
-    print(f'Remaining: {format_size(remaining_limit)}, {format_size(remaining_limit_daily)}/day')
+    print(f'  Size: {format_size(limit)}, {format_size(limit_daily)}/day')
+    print(f'  Used: {format_size(used_limit)}, {format_size(used_limit_daily)}/day')
+    print(f'  Remaining: {format_size(remaining_limit)}, {format_size(remaining_limit_daily)}/day')
 
 def read_json(data):
     data = data.decode('UTF-8')
