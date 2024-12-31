@@ -107,6 +107,7 @@ def print_client_info(client_info, *, options):
         print('Client time:', client_now)
         if server_now is not None:
             print('Time delta:', client_now - server_now)
+    client_data = client_info['clientData']
     client_info = client_info['data']
     login_info = client_info['loginData']
     iccid = login_info['cardNumber']
@@ -114,6 +115,13 @@ def print_client_info(client_info, *, options):
     user = '{name} {surname}'.format_map(bdi_info)
     print('ICCID:', iccid)
     print('User:', user)
+    exp_date = client_data['abonentData']['accountValidTo']
+    exp_date_match = re.match(r'\A([0-9]{2})-([0-9]{2})-([0-9]{4})\Z', exp_date)
+    if exp_date_match is None:
+        raise ScrapingError('client-data/exp-date', exp_date)
+    (day, month, year) = (int(x) for x in exp_date_match.groups())
+    exp_date = datetime.date(year, month, day)
+    print('Expires:', exp_date)
     pkg_info = client_info['currentPackage']
     if pkg_info is None:
         print('Period: none')
@@ -327,7 +335,9 @@ def main():
     except ValueError:
         raise ScrapingError('token', token) from None
     ua.default_headers['X-CustomToken'] = token
+    client_data = ua.json_get('/ProstyPrepaid/selfcare/getClientData')
     client_info = ua.json_get('/ProstyPrepaid/selfcare/getClientInfo', with_datetime=True)
+    client_info['clientData'] = client_data['data']
     print_client_info(client_info, options=options)
     logout_info = ua.json_get('/ProstyPrepaid/selfcare/logout')
     if logout_info != dict(data=True):
