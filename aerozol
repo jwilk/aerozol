@@ -27,7 +27,9 @@ import datetime
 import email.utils
 import functools
 import getpass
+import gzip
 import http.cookiejar
+import io
 import json
 import re
 import ssl
@@ -174,6 +176,7 @@ class UserAgent:
     default_headers = {
         'User-Agent': user_agent_string,
         'Referer': base_url,
+        'Accept-Encoding': 'gzip',
     }
 
     def __init__(self, cafile=None):
@@ -194,7 +197,19 @@ class UserAgent:
             headers=headers,
             **kwargs
         )
-        return self.opener.open(request)
+        response = self.opener.open(request)
+        content_encoding = response.getheader('Content-Encoding', 'identity')
+        data = response.read()
+        if content_encoding == 'gzip':
+            data = gzip.decompress(data)
+        elif content_encoding == 'identity':
+            pass
+        else:
+            raise RuntimeError(f'unexpected Content-Encoding: {content_encoding!r}')
+        response.fp = io.BytesIO(data)
+        response.length = None
+        response.chunked = False
+        return response
 
     def get(self, url, headers=(), **kwargs):
         return self._request(url, headers=headers, method='GET', **kwargs)
