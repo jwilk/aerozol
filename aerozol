@@ -290,11 +290,16 @@ def main():
         password = getpass.getpass('moje.aero2.pl password: ')
     if not password:
         error('error: empty password')
-    with ua.get('/assets/environment.js') as fp:
-        env_text = fp.read()
-    env_text = env_text.decode('UTF-8')
+    with ua.get('/') as fp:
+        index_html = fp.read()
+    index_html = index_html.decode('UTF-8')
+    match = re.search('<script src="(main[.].[0-9a-f]+[.]js)"', index_html)
+    main_js_url = '/' + match.group(1)
+    with ua.get(main_js_url) as fp:
+        main_js = fp.read()
+    main_js = main_js.decode('UTF-8')
     env = {}
-    for match in re.finditer(r"\blogin(\w+):\s*'([\w/+]+=*)'", env_text):
+    for match in re.finditer(r'\blogin(\w+):\s*"([\w/+]+=*)"', main_js):
         key, value = match.groups()
         value = base64_decode(value)
         env[key] = value
