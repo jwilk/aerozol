@@ -274,6 +274,13 @@ def ap_type_date(s):
     return d.astimezone()
 ap_type_date.__name__ = 'date'
 
+def is_valid_login(s):
+    return (
+        isinstance(s, str)
+        and len(s) == 10
+        and s.isdigit()
+    )
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--until', metavar='YYYY-MM-DD', help='exhaustion target', type=ap_type_date)
@@ -328,7 +335,7 @@ def main():
         raise ScrapingError('is-login', login_info)
     iccid_info = ua.json_get('/ProstyPrepaid/selfcare/getICCID')
     iccid = iccid_info['data']['cardNumber']
-    if isinstance(iccid, str) and len(iccid) == 10 and iccid.isdigit():
+    if is_valid_login(iccid):
         pass
     else:
         raise ScrapingError('get-iccid', iccid_info)
