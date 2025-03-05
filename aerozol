@@ -341,15 +341,15 @@ def main():
     if login_info != dict(error='SESSION_EXPIRED'):
         raise ScrapingError('is-login', login_info)
     if options.login:
-        iccid = options.login
+        login = options.login
     else:
         iccid_info = ua.json_get('/ProstyPrepaid/selfcare/getICCID')
-        iccid = iccid_info['data']['cardNumber']
-        if is_valid_login(iccid):
+        login = iccid_info['data']['cardNumber']
+        if is_valid_login(login):
             pass
         else:
             raise ScrapingError('get-iccid', iccid_info)
-    form_login = base64_encode(conf_encrypt(iccid))
+    form_login = base64_encode(conf_encrypt(login))
     form_password = base64_encode(conf_encrypt(password))
     try:
         post_login_info = ua.json_post('/ProstyPrepaid/selfcare/login', data=dict(
