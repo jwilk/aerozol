@@ -281,9 +281,16 @@ def is_valid_login(s):
         and s.isdigit()
     )
 
+def ap_type_login(s):
+    if not is_valid_login(s):
+        raise ValueError
+    return s
+ap_type_login.__name__ = 'login'
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--until', metavar='YYYY-MM-DD', help='exhaustion target', type=ap_type_date)
+    ap.add_argument('--login', metavar='LOGIN', help='login id (last 10 digits of ICCID)', type=ap_type_login)
     ap.add_argument('--password-file', metavar='FILE', help='read password from FILE')
     ap.add_argument('--ca-file', metavar='FILE', help='trust these CA certificate(s)')
     ap.add_argument('--debug-client-info', action='store_true', help=argparse.SUPPRESS)
@@ -333,12 +340,15 @@ def main():
     login_info = ua.json_get('/ProstyPrepaid/selfcare/isLogin')
     if login_info != dict(error='SESSION_EXPIRED'):
         raise ScrapingError('is-login', login_info)
-    iccid_info = ua.json_get('/ProstyPrepaid/selfcare/getICCID')
-    iccid = iccid_info['data']['cardNumber']
-    if is_valid_login(iccid):
-        pass
+    if options.login:
+        iccid = options.login
     else:
-        raise ScrapingError('get-iccid', iccid_info)
+        iccid_info = ua.json_get('/ProstyPrepaid/selfcare/getICCID')
+        iccid = iccid_info['data']['cardNumber']
+        if is_valid_login(iccid):
+            pass
+        else:
+            raise ScrapingError('get-iccid', iccid_info)
     form_login = base64_encode(conf_encrypt(iccid))
     form_password = base64_encode(conf_encrypt(password))
     try:
