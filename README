@@ -21,14 +21,9 @@ to print paid plan status:
 Prerequisites
 =============
 
-* Python ≥ 3.6
-
-* pytz_ (for Python < 3.9)
+* Python ≥ 3.9
 
 * cryptography_
-
-.. _pytz:
-   https://pypi.org/project/pytz/
 
 .. _cryptography:
    https://pypi.org/project/cryptography/
