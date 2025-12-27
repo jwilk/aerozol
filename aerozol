@@ -64,6 +64,8 @@ def format_timedelta(td):
         raise ValueError
     m = s // 60
     del s
+    if d == 0 and m == 0:
+        return 'just now'
     (h, m) = divmod(m, 60)
     if d > 0:
         result += [f'{d}d']
