@@ -291,6 +291,7 @@ ap_type_login.__name__ = 'login'
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.color = False
     ap.add_argument('--until', metavar='YYYY-MM-DD', help='exhaustion target', type=ap_type_date)
     ap.add_argument('--login', metavar='LOGIN', help='login id (last 10 digits of ICCID)', type=ap_type_login)
     ap.add_argument('--password-file', metavar='FILE', help='read password from FILE')
